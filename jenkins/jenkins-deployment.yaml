@@ -1,0 +1,235 @@
+aws ec2 create-security-group \
+--region ap-southeast-2 \
+--group-name efs-mount-sg \
+--description "Amazon EFS for EKS, SG for mount target" \
+--vpc-id "vpc-06d009a85ccfd4dc5"  
+
+
+aws ec2 authorize-security-group-ingress \
+--group-id sg-0997a03e5256bd88c
+--region ap-southeast-2 \
+--protocol tcp \
+--port 2049 \
+--cidr 192.168.0.0/16
+
+"Return": true,
+    "SecurityGroupRules": [
+        {
+            "SecurityGroupRuleId": "sgr-05ca93c26e48d03da",
+            "GroupId": "sg-0997a03e5256bd88c",
+            "GroupOwnerId": "840167699114",
+            "IsEgress": false,
+            "IpProtocol": "tcp",
+            "FromPort": 2049,
+            "ToPort": 2049,
+            "CidrIpv4": "192.168.0.0/16",
+            "SecurityGroupRuleArn": "arn:aws:ec2:ap-southeast-2:840167699114:security-group-rule/sgr-05ca93c26e48d03da"
+        }
+    ]
+
+
+    aws efs create-file-system \
+--creation-token creation-token \
+--performance-mode generalPurpose \
+--throughput-mode bursting \
+--region ap-southeast-2 \
+--tags Key=Name,Value=MyEFSFileSystem \
+--encrypted
+
+
+{
+    "OwnerId": "840167699114",
+    "CreationToken": "creation-token",
+    "FileSystemId": "fs-0980887a187a9b6e5",
+    "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:840167699114:file-system/fs-0980887a187a9b6e5",
+    "CreationTime": "2025-05-22T00:44:38+10:00",
+    "LifeCycleState": "creating",
+    "Name": "MyEFSFileSystem",
+    "NumberOfMountTargets": 0,
+    "SizeInBytes": {
+        "Value": 0,
+        "ValueInIA": 0,
+        "ValueInStandard": 0,
+        "ValueInArchive": 0
+    },
+    "PerformanceMode": "generalPurpose",
+    "Encrypted": true,
+    "KmsKeyId": "arn:aws:kms:us-east-1:840167699114:key/f3ae9fb0-d39a-4765-a960-488b82d47bbb",
+    "ThroughputMode": "bursting",
+    "Tags": [
+        {
+            "Key": "Name",
+            "Value": "MyEFSFileSystem"
+        }
+    ],
+    "FileSystemProtection": {
+        "ReplicationOverwriteProtection": "ENABLED"
+    }
+}
+
+{
+    "OwnerId": "840167699114",
+    "CreationToken": "creation-token",
+    "FileSystemId": "fs-0c6901c64089212a9",
+    "FileSystemArn": "arn:aws:elasticfilesystem:ap-southeast-2:840167699114:file-system/fs-0c6901c64089212a9",
+    "CreationTime": "2025-05-22T00:59:56+10:00",
+    "LifeCycleState": "creating",
+    "Name": "MyEFSFileSystem",
+    "NumberOfMountTargets": 0,
+    "SizeInBytes": {
+        "Value": 0,
+        "ValueInIA": 0,
+        "ValueInStandard": 0,
+        "ValueInArchive": 0
+    },
+    "PerformanceMode": "generalPurpose",
+    "Encrypted": true,
+    "KmsKeyId": "arn:aws:kms:ap-southeast-2:840167699114:key/597e1e12-036c-41e2-8fc3-372ec86264ed",
+    "ThroughputMode": "bursting",
+    "Tags": [
+        {
+            "Key": "Name",
+            "Value": "MyEFSFileSystem"
+        }
+    ],
+    "FileSystemProtection": {
+        "ReplicationOverwriteProtection": "ENABLED"
+    }
+}
+
+
+aws ec2 describe-instances --filters Name=vpc-id,Values="vpc-06d009a85ccfd4dc5" --query 
+'Reservations[*].Instances[].SubnetId'
+
+[
+    "subnet-09d69e926356a519a",
+    "subnet-0e19c21fb57d11fc6",
+    "subnet-0d3f8f84fa43bd574"
+]
+
+
+aws efs create-mount-target \
+--file-system-id fs-0c6901c64089212a9 \
+--subnet-id subnet-09d69e926356a519a \
+--security-group sg-0997a03e5256bd88c \
+--region ap-southeast-2
+
+{
+    "OwnerId": "840167699114",
+    "MountTargetId": "fsmt-0f40e9b37567a1abb",
+    "FileSystemId": "fs-0c6901c64089212a9",
+    "SubnetId": "subnet-09d69e926356a519a",
+    "LifeCycleState": "creating",
+    "IpAddress": "192.168.64.91",
+    "NetworkInterfaceId": "eni-0d24fa46b099babdf",
+    "AvailabilityZoneId": "apse2-az2",
+    "AvailabilityZoneName": "ap-southeast-2c",
+    "VpcId": "vpc-06d009a85ccfd4dc5"
+}
+
+{
+    "OwnerId": "840167699114",
+    "MountTargetId": "fsmt-01cc4e07c14f95efa",
+    "FileSystemId": "fs-0c6901c64089212a9",
+    "SubnetId": "subnet-0e19c21fb57d11fc6",
+    "LifeCycleState": "creating",
+    "IpAddress": "192.168.10.39",
+    "NetworkInterfaceId": "eni-07b54db985bfa8412",
+    "AvailabilityZoneId": "apse2-az3",
+    "AvailabilityZoneName": "ap-southeast-2b",
+    "VpcId": "vpc-06d009a85ccfd4dc5"
+}
+aws efs create-access-point --file-system-id fs-0c6901c64089212a9 \
+--posix-user Uid=1000,Gid=1000 \
+--root-directory 
+"Path=/jenkins,CreationInfo={OwnerUid=1000,OwnerGid=1000,Permissions=777}"
+
+{
+    "ClientToken": "113281ad-3894-4534-a19f-c31649509f66",
+    "Tags": [],
+    "AccessPointId": "fsap-097c910599bcf6a36",
+    "AccessPointArn": "arn:aws:elasticfilesystem:ap-southeast-2:840167699114:access-point/fsap-097c910599bcf6a36",
+    "FileSystemId": "fs-0c6901c64089212a9",
+    "PosixUser": {
+        "Uid": 1000,
+        "Gid": 1000
+    },
+    "RootDirectory": {
+        "Path": "/jenkins",
+        "CreationInfo": {
+            "OwnerUid": 1000,
+            "OwnerGid": 1000,
+            "Permissions": "777"
+        }
+    },
+    "OwnerId": "840167699114",
+    "LifeCycleState": "creating"
+}
+
+kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-
+driver/deploy/kubernetes/overlays/stable/?ref=master"
+
+
+
+
+kubectl apply -f storageclass.yaml 
+storageclass.storage.k8s.io/efs-sc created
+➜  jenkins git:(main) ✗ vim persistentvolume.yaml
+➜  jenkins git:(main) ✗ kubectl apply -f persistentvolume.yaml 
+persistentvolume/efs-pv created
+➜  jenkins git:(main) ✗ vim persistentvolumeclaim.yaml
+➜  jenkins git:(main) ✗ kubectl apply -f persistentvolumeclaim.yaml 
+persistentvolumeclaim/efs-claim created
+➜  jenkins git:(main) ✗ kubectl get sc,pv,pvc
+NAME                                 PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+storageclass.storage.k8s.io/efs-sc   efs.csi.aws.com         Delete          Immediate              false                  5m3s
+storageclass.storage.k8s.io/gp2      kubernetes.io/aws-ebs   Delete          WaitForFirstConsumer   false                  156m
+
+NAME                      CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM               STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+persistentvolume/efs-pv   5Gi        RWX            Retain           Bound    default/efs-claim   efs-sc         <unset>                          109s
+
+NAME                              STATUS   VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/efs-claim   Bound    efs-pv   5Gi        RWX            efs-sc         <unset>                 11s
+➜  jenkins git:(main) ✗ kubectl get sc,pv,pvc
+NAME                                 PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+storageclass.storage.k8s.io/efs-sc   efs.csi.aws.com         Delete          Immediate              false                  5m11s
+storageclass.storage.k8s.io/gp2      kubernetes.io/aws-ebs   Delete          WaitForFirstConsumer   false                  156m
+
+NAME                      CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM               STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+persistentvolume/efs-pv   5Gi        RWX            Retain           Bound    default/efs-claim   efs-sc         <unset>                          117s
+
+NAME                              STATUS   VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/efs-claim   Bound    efs-pv   5Gi        RWX            efs-sc         <unset>                 20s
+
+
+helm repo add stable https://charts.helm.sh/stable   
+
+helm install jenkins stable/jenkins --set rbac.create=true,master.servicePort=80,master.serviceType=LoadBalancer,persistence.existingClaim=efs-claim
+WARNING: This chart is deprecated
+NAME: jenkins
+LAST DEPLOYED: Thu May 22 01:19:29 2025
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+NOTES:
+*******************
+****DEPRECATED*****
+*******************
+* The Jenkins chart is deprecated. Future development has been moved to https://github.com/jenkinsci/helm-charts
+
+1. Get your 'admin' user password by running:
+  printf $(kubectl get secret --namespace default jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode);echo
+2. Get the Jenkins URL to visit by running these commands in the same shell:
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status of by running 'kubectl get svc --namespace default -w jenkins'
+  export SERVICE_IP=$(kubectl get svc --namespace default jenkins --template "{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}")
+  echo http://$SERVICE_IP:80/login
+
+3. Login with the password from step 1 and the username: admin
+
+4. Use Jenkins Configuration as Code by specifying configScripts in your values.yaml file, see documentation: http:///configuration-as-code and examples: https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos
+
+For more information on running Jenkins on Kubernetes, visit:
+https://cloud.google.com/solutions/jenkins-on-container-engine
+For more information about Jenkins Configuration as Code, visit:
+https://jenkins.io/projects/jcasc/
